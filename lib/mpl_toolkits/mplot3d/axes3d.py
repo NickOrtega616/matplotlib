@@ -1793,6 +1793,12 @@ class Axes3D(Axes):
         cmap = kwargs.get('cmap', None)
         shade = kwargs.pop('shade', cmap is None)
 
+        try:
+            colorvals = kwargs.pop('colorvals')
+        except KeyError:
+            # We do this so colorvals doesn't get passed as an arg to others
+            colorvals, *args = args
+
         tri, args, kwargs = \
             Triangulation.get_from_args_and_kwargs(*args, **kwargs)
         try:
@@ -1812,8 +1818,12 @@ class Axes3D(Axes):
 
         if cmap:
             # average over the three points of each triangle
-            avg_z = verts[:, :, 2].mean(axis=1)
-            polyc.set_array(avg_z)
+            if colorvals is not None:
+                # array of magnitudes for color
+                colors = colorvals[triangles].mean(axis=1)
+            else:
+                colors = verts[:, :, 2].mean(axis=1)
+            polyc.set_array(colors)
             if vmin is not None or vmax is not None:
                 polyc.set_clim(vmin, vmax)
             if norm is not None:
